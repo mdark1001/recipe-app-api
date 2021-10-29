@@ -4,10 +4,11 @@
 @name: urls.py
 """
 from django.urls import path
-from .views import UserSignupView
+from .views import UserLoginView, UserSignupView
 
 app_name = 'users'
 
 urlpatterns = [
     path('create/', UserSignupView.as_view(), name='create'),
+    path('login/',UserLoginView.as_view(), name='login'),
 ]

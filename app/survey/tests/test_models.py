@@ -29,9 +29,9 @@ class SurveyModelTests(TestCase):
             name='New Survey',
             owner=self.user,
         )
-        self.assertFalse(survey)
+        self.assertIsNotNone(survey)
         self.assertEqual(survey.name, 'New Survey')
-        self.assertEqual(survey.created.today(), today)
+        self.assertEqual(survey.created.date(), today)
 
     def test_create_survey_questions(self):
         """Create a survey and multiple questions """
@@ -51,6 +51,14 @@ class SurveyModelTests(TestCase):
         ]
         for question in questions:
             # TODO - create question and them options :D
-
-            for option in question['option']:
-                pass
+            q = Question(name=question['name'], survey=survey)
+            q.save()
+            for option in question['options']:
+                o = Option(
+                    question=q,
+                    name=option,
+                )
+                o.save()
+        self.assertEqual(len(questions), survey.total_questions)
+        # print(survey.questions.all())
+        self.assertEqual(questions[0]['name'], survey.questions.all()[0].name)

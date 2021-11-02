@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # Own apps
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
+    'survey.apps.SurveyConfig',
 ]
 
 MIDDLEWARE = [

@@ -62,3 +62,16 @@ class SurveyModelTests(TestCase):
         self.assertEqual(len(questions), survey.total_questions)
         # print(survey.questions.all())
         self.assertEqual(questions[0]['name'], survey.questions.all()[0].name)
+
+    def test_get_only_surveys_actives(self):
+        """Test over custom manager by get surveys active"""
+        surveys = [
+            {'name': 'New survey', 'owner': self.user, 'is_active': True},
+            {'name': 'New survey 2', 'owner': self.user, 'is_active': False}
+        ]
+        count_surveys_actives_array = len(list(filter(lambda s: s['is_active'], surveys)))
+        for s in surveys:
+            Survey.objects.create(**s)
+        count_surveys_actives = Survey.actives.count()
+        self.assertEqual(count_surveys_actives_array, count_surveys_actives)
+    # def test_

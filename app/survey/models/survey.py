@@ -8,6 +8,11 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 
+class SurveyActiveManager(models.Manager):
+    def get_queryset(self):
+        return super(SurveyActiveManager, self).get_queryset().filter(is_active=True)
+
+
 class Survey(models.Model):
     """Survey model store survey and owner """
     name = models.CharField(
@@ -32,7 +37,9 @@ class Survey(models.Model):
     def total_questions(self):
         return Question.objects.filter(survey=self).count()
 
-    # questions =
+    # Custom manager for this model
+    objects = models.Manager()
+    actives = SurveyActiveManager()
 
     def __str__(self):
         return self.name

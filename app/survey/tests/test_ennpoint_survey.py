@@ -31,8 +31,17 @@ class SurveyEndpointTests(TestCase):
         self.user_two = User.create_user(
             email='test2@email.com',
             password='12345612211',
-            name='New User'
+            name='New User 2'
         )
+        self.surveys = [
+            {'name': 'New survey 1', 'owner': self.user, 'is_active': True},
+            {'name': 'New survey 2', 'owner': self.user, 'is_active': False},
+            {'name': 'New survey 3', 'owner': self.user, 'is_active': False},
+            {'name': 'New survey 4', 'owner': self.user, 'is_active': True},
+            {'name': 'New survey 5', 'owner': self.user, 'is_active': False},
+            {'name': 'New survey 6', 'owner': self.user_two, 'is_active': False},
+            {'name': 'New survey 7', 'owner': self.user_two, 'is_active': True},
+        ]
 
     def test_create_successful_survey(self):
         """Create a survey using the api endpoint """
@@ -42,7 +51,6 @@ class SurveyEndpointTests(TestCase):
                                    'name': 'When is your birth day?',
                                    'owner': self.user.pk,
                                })
-        print(res.content)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_fail_create_survey_unauthorized(self):
@@ -52,20 +60,21 @@ class SurveyEndpointTests(TestCase):
 
     def test_list_my_own_surveys(self):
         """ list my own surveys"""
-        surveys = [
-            {'name': 'New survey 1', 'owner': self.user, 'is_active': True},
-            {'name': 'New survey 2', 'owner': self.user, 'is_active': False},
-            {'name': 'New survey 3', 'owner': self.user, 'is_active': False},
-            {'name': 'New survey 4', 'owner': self.user, 'is_active': True},
-            {'name': 'New survey 5', 'owner': self.user, 'is_active': False},
-            {'name': 'New survey 6', 'owner': self.user_two, 'is_active': False},
-            {'name': 'New survey 7', 'owner': self.user_two, 'is_active': True},
-        ]
-        for survey in surveys:
+
+        for survey in self.surveys:
             Survey.objects.create(**survey)
         self.client.force_authenticate(user=self.user)
         res = self.client.get(LIST_SURVEY_URL)
-        user_total_surveys = len(list(filter(lambda s: s['owner'] == self.user, surveys)))
+        user_total_surveys = len(list(filter(lambda s: s['owner'] == self.user, self.surveys)))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-      #  self.assertIn('surveys', res.data)
-        self.assertEqual(user_total_surveys, len(res.data))
+        #  self.assertIn('surveys', res.data)
+        self.assertEqual(user_total_surveys, res.data['count'])
+
+    def test_list_my_owen_survey_active(self):
+        for survey in self.surveys:
+            Survey.objects.create(**survey)
+        self.client.force_authenticate(user=self.user)
+        res = self.client.get(LIST_SURVEY_URL, {'is_active': True})
+        user_total_surveys = len(list(filter(lambda s: s['owner'] == self.user and s['is_active'], self.surveys)))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(user_total_surveys, res.data['count'])

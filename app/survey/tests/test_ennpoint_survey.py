@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from survey.models.survey import Survey
+from slugify import slugify
 
 User = get_user_model().objects
 SURVEY_URL = reverse('survey:survey-list')
@@ -51,6 +52,7 @@ class SurveyEndpointTests(TestCase):
                                    'name': 'When is your birth day?',
                                    'owner': self.user.pk,
                                })
+        # print(res.content)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_fail_create_survey_unauthorized(self):
@@ -71,6 +73,7 @@ class SurveyEndpointTests(TestCase):
         self.assertEqual(user_total_surveys, res.data['count'])
 
     def test_list_my_owen_survey_active(self):
+        """Get list my onw survey active trying the filters"""
         for survey in self.surveys:
             Survey.objects.create(**survey)
         self.client.force_authenticate(user=self.user)
@@ -78,3 +81,16 @@ class SurveyEndpointTests(TestCase):
         user_total_surveys = len(list(filter(lambda s: s['owner'] == self.user and s['is_active'], self.surveys)))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(user_total_surveys, res.data['count'])
+
+    def test_get_survey_by_slug(self):
+        """Test over slug name and filter it"""
+        survey = self.surveys[0]
+        survey['owner'] = self.user.pk
+        slug_name = slugify(survey['name'])
+        self.client.force_authenticate(self.user)
+        res = self.client.post(SURVEY_URL, survey)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(slug_name, res.data['slug'])
+        res = self.client.get(SURVEY_URL, {'slug': slug_name})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('name', res.data['results'][0].keys())

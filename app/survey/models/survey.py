@@ -6,6 +6,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext as _
+from slugify import slugify
 
 
 class SurveyActiveManager(models.Manager):
@@ -19,6 +20,7 @@ class Survey(models.Model):
         max_length=255,
         verbose_name=_('Survey name')
     )
+    slug = models.SlugField()
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -43,6 +45,11 @@ class Survey(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super(Survey, self).save(*args, **kwargs)
 
 
 class Question(models.Model):
@@ -70,6 +77,7 @@ class Option(models.Model):
     question = models.ForeignKey(
         Question,
         on_delete=models.CASCADE,
+        related_name='questions'
     )
 
     def __str__(self):

@@ -26,6 +26,7 @@ class SurveyViewSets(ModelViewSet):
     search_filters = ('name',)
     ordering = ('-created',)
     filter_fields = ('is_active',)
+    lookup_field = 'slug'
 
     def get_queryset(self):
         queryset = Survey.objects.all()
